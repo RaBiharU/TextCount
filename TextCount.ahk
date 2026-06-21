@@ -2,6 +2,9 @@
 
 ; Ctrl(^) + Win(#) + C をトリガーに設定
 ^#c:: {
+    ; 現在のクリップボードの内容をすべて保存（画像やファイルも含む）
+    SavedClip := ClipboardAll()
+
     ; クリップボードの履歴を一時的に空にして誤動作を防止
     A_Clipboard := ""
     
@@ -9,8 +12,12 @@
     Send("^c")
     
     ; コピーが完了するまで最大1秒待機
-    if !ClipWait(1)
+    if !ClipWait(1) {
+        ; テキストの取得に失敗した場合でも、元の状態に復元して終了
+        A_Clipboard := SavedClip
+        SavedClip := "" ; メモリ解放
         return
+    }
     
     text := A_Clipboard
     
@@ -38,4 +45,8 @@
     
     ; 表示時間3秒（-3000）
     SetTimer(() => ToolTip(), -3000)
+
+    ; 処理が終わったら元のクリップボードの内容を復元
+    A_Clipboard := SavedClip
+    SavedClip := "" ; メモリ解放
 }
